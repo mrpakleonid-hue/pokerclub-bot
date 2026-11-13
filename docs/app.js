@@ -180,7 +180,7 @@ function onboarding() {
     <div class="row"><input id="ob-phone" type="tel" name="phone" placeholder="+7 ..." value="${esc(me.phone || '')}" required>${IN_TG && TGW.requestContact ? '<button type="button" class="btn dark sm" data-act="sharePhone">Поделиться</button>' : ''}</div>
     <label class="f" for="ob-dob">Дата рождения</label><input id="ob-dob" type="text" name="dob" inputmode="numeric" placeholder="ДД.ММ.ГГГГ" maxlength="10" data-mask="date" value="${esc(dateRu(me.dob || ''))}" required>
     <div class="small mut" style="margin-top:4px">Клуб принимает игроков с 18 лет. Изменить дату потом можно только через управляющего.</div>
-    <label class="row small" style="margin-top:12px;gap:10px"><input type="checkbox" name="pd" required style="width:22px;height:22px;accent-color:var(--gold)"> Согласен(на) на обработку персональных данных и с правилами клуба</label>
+    <label class="row small" style="margin-top:12px;gap:10px"><input id="ob-pd" type="checkbox" name="pd" required style="width:22px;height:22px;accent-color:var(--gold)"> Согласен(на) на обработку персональных данных и с правилами клуба</label>
     <button class="btn wide" style="margin-top:14px">Зарегистрироваться</button>
     ${S.me.role === 'owner' ? '<div class="lock">Вы первый пользователь — вам автоматически выдана роль управляющего.</div>' : ''}
   </form></main>`;
@@ -619,7 +619,17 @@ function fullHtml() {
     <div class="mut" style="margin-top:6px">В игре ${regsOf(t.id).filter(r => r.status === 'arrived').length}</div>
     <button class="btn ghost" style="margin-top:24px" data-act="unfull">Закрыть</button></div>`;
 }
-function render() {
+/* Введённое пользователем не должно пропадать при фоновом обновлении экрана */
+const DIRTY = {};
+const fieldVal = el => el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value;
+document.addEventListener('input', e => { const el = e.target; if (el.id && /INPUT|SELECT|TEXTAREA/.test(el.tagName)) DIRTY[el.id] = fieldVal(el); }, true);
+document.addEventListener('change', e => { const el = e.target; if (el.id && /INPUT|SELECT|TEXTAREA/.test(el.tagName)) DIRTY[el.id] = fieldVal(el); }, true);
+function restoreFields() {
+  for (const id in DIRTY) { const el = document.getElementById(id); if (!el) continue; if (el.type === 'checkbox' || el.type === 'radio') el.checked = DIRTY[id]; else el.value = DIRTY[id]; }
+}
+function clearDirty(form) { form.querySelectorAll('[id]').forEach(el => { delete DIRTY[el.id]; }); }
+function render() { renderInner(); restoreFields(); }
+function renderInner() {
   const app = document.getElementById('app'), layer = document.getElementById('layer');
   if (!S) { app.innerHTML = TOKEN ? '<main><div class="empty">Загрузка…</div></main>' : loginView(); layer.innerHTML = ''; return; }
   app.innerHTML = !S.me.profileDone ? onboarding() : (isStaff() ? staffView() : playerView());
@@ -661,7 +671,7 @@ const ACT = {
   full: d => { UI.full = d.tid; render(); try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); } catch (e) {} },
   unfull: () => { UI.full = null; render(); try { document.fullscreenElement && document.exitFullscreen(); } catch (e) {} },
   logout: () => { logout(); render(); },
-  sharePhone: () => { try { TGW.requestContact((ok, res) => { const ph = res && res.responseUnsafe && res.responseUnsafe.contact && res.responseUnsafe.contact.phone_number; if (ok && ph) { const i = document.getElementById('ob-phone'); if (i) i.value = (ph.startsWith('+') ? '' : '+') + ph; } }); } catch (e) { toast('Введите номер вручную'); } },
+  sharePhone: () => { try { TGW.requestContact((ok, res) => { const ph = res && res.responseUnsafe && res.responseUnsafe.contact && res.responseUnsafe.contact.phone_number; if (ok && ph) { const i = document.getElementById('ob-phone'); if (i) { i.value = (ph.startsWith('+') ? '' : '+') + ph; DIRTY[i.id] = i.value; } } }); } catch (e) { toast('Введите номер вручную'); } },
   do: d => {
     const p = {}; ['tid', 'm', 'i', 'tk', 'sid'].forEach(k => { if (d[k] !== undefined) p[k] = d[k]; });
     if (d.opid) p.opId = d.opid;
@@ -705,7 +715,7 @@ document.addEventListener('click', e => {
   const fn = ACT[el.dataset.act]; if (fn) { if (el.tagName === 'BUTTON') e.preventDefault(); fn(el.dataset, el, e); }
 });
 document.addEventListener('change', e => { const el = e.target; if (!el.dataset || !el.dataset.act) return; if (el.tagName === 'SELECT' || el.type === 'checkbox') { const fn = CHANGE[el.dataset.act]; if (fn) fn(el); } });
-document.addEventListener('submit', e => { e.preventDefault(); const f = e.target; const fn = FORM[f.dataset.form]; if (fn) fn(new FormData(f), f.dataset); });
+document.addEventListener('submit', e => { e.preventDefault(); const f = e.target; const fn = FORM[f.dataset.form]; if (!fn) return; const r = fn(new FormData(f), f.dataset); Promise.resolve(r).then(x => { if (x && !x.queued) clearDirty(f); }).catch(() => {}); });
 
 /* ---------- запуск ---------- */
 async function start() {

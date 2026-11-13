@@ -74,7 +74,7 @@ h1,h2,h3{margin:0}
 .clock .tm.paused{color:var(--mut);text-shadow:none}
 .live{color:var(--red);font-size:11px;letter-spacing:.14em;font-weight:700}
 .sched .it{cursor:pointer}
-input[type=text],input[type=tel],input[type=date],input[type=number],select{width:100%;background:var(--p2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-height:44px}
+input[type=text],input[type=tel],input[type=date],input[type=time],input[type=number],select{width:100%;background:var(--p2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-height:44px}
 label.f{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
 .seg{display:flex;gap:6px;flex-wrap:wrap}
 .seg label{flex:1;min-width:70px}
@@ -105,15 +105,15 @@ label.f{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
 #app{padding-bottom:90px;padding-top:env(safe-area-inset-top)}
 .brand img{width:48px;height:48px;border:none;border-radius:12px}
 .full img{width:110px;height:110px}
-input[type=date]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;min-height:48px;text-align:left;-webkit-min-logical-width:calc(100% - 28px)}
-input[type=date]::-webkit-date-and-time-value{text-align:left}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;min-height:48px;text-align:left;-webkit-min-logical-width:calc(100% - 28px);color-scheme:dark}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left}
 </style>
 </head>
 <body>
 <div id="app"><main><div class="empty">Загрузка…</div></main></div>
 <div id="layer"></div>
-<script src="config.js?v=1794602816"></script>
-<script src="core.js?v=1794602816"></script>
-<script src="app.js?v=1794602816"></script>
+<script src="config.js?v=1794605786"></script>
+<script src="core.js?v=1794605786"></script>
+<script src="app.js?v=1794605786"></script>
 </body>
 </html>

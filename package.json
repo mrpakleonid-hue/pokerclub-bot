@@ -1,0 +1,15 @@
+{
+  "name": "castle-club",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Castle Club — Telegram-бот и веб-приложение покерного клуба (игра не на деньги)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/core.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "pg": "^8.11.0"
+  }
+}

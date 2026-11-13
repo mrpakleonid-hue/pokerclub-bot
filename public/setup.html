@@ -1,0 +1,10 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castle Club — настройка</title>
+<style>body{margin:0;background:#0a0a0b;color:#f4efe5;font:16px Inter,system-ui,sans-serif}main{max-width:440px;margin:0 auto;padding:24px 16px}h1{color:#f2d892;font-size:24px}label{display:block;color:#a9a296;font-size:13px;margin:14px 0 6px}input{width:100%;box-sizing:border-box;background:#1c1a1e;border:1px solid #2c2930;border-radius:10px;padding:13px;color:#f4efe5;font-size:16px}button{width:100%;margin-top:18px;padding:14px;border-radius:12px;border:none;background:linear-gradient(180deg,#f2d892,#d8b45f);color:#1a1407;font-weight:700;font-size:16px}#r{margin-top:16px;line-height:1.5}a{color:#f2d892}</style></head>
+<body><main><img src="logo.svg" width="64" height="64" alt=""><h1>Подключение Telegram-бота</h1>
+<p style="color:#a9a296">Вставьте токен бота из @BotFather (кнопка Copy) и код настройки. Токен сохранится только на сервере.</p>
+<form id="f"><label for="c">Код настройки</label><input id="c" name="code" inputmode="numeric" required>
+<label for="t">Токен бота</label><input id="t" name="token" required placeholder="123456789:AA...">
+<button>Подключить</button></form><div id="r"></div></main>
+<script src="config.js"></script><script>document.getElementById('f').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const r=document.getElementById('r');r.textContent='Проверяю…';
+try{const x=await fetch((window.CC_API||'')+'/api/setup',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code:f.get('code'),token:f.get('token').trim()})});const j=await x.json();
+if(!x.ok)throw new Error(j.error);r.innerHTML='✅ Бот @'+j.username+' подключён.<br><br><a href="https://t.me/'+j.username+'">Открыть бота</a> → «Открыть приложение». Первый, кто зарегистрируется, станет управляющим.';e.target.remove();}catch(err){r.textContent='❌ '+err.message;}};</script></body></html>

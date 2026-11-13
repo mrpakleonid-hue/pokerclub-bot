@@ -14,7 +14,7 @@ const SLUG = process.env.FUNCTION_SLUG || 'castle';
 const PUBLIC = process.env.PUBLIC_URL || (process.env.NEON_BRANCH_ID && process.env.NEON_FUNCTION_HOST_SUFFIX ? 'https://' + process.env.NEON_BRANCH_ID + '-' + SLUG + process.env.NEON_FUNCTION_HOST_SUFFIX : '');
 const handle = globalThis.CASTLE.createHandler({
   core: CORE, store: globalThis.CASTLE.createHttpStore(process.env.DATABASE_URL), assets: ASSETS,
-  secret: process.env.SESSION_SECRET, setupCode: process.env.SETUP_CODE || '', publicUrl: PUBLIC
+  secret: process.env.SESSION_SECRET, setupCode: process.env.SETUP_CODE || '', publicUrl: PUBLIC, appUrl: process.env.WEB_APP_URL || ''
 });
 export default { fetch: (request) => handle(request) };
 ''' % json.dumps(assets, ensure_ascii=False)
@@ -24,3 +24,15 @@ open(os.path.join(root, 'dist/index.mjs'), 'w', encoding='utf-8').write(out)
 z = os.path.join(root, 'dist/function.zip')
 with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED) as zf: zf.write(os.path.join(root, 'dist/index.mjs'), 'index.mjs')
 print(os.path.getsize(z), 'bytes')
+
+# ---- docs/: экран приложения для GitHub Pages (API — на Neon) ----
+import shutil
+API_URL = os.environ.get('CC_API', 'https://br-red-base-b9qm2axn-castle.compute.c-7.eu-central-1.aws.neon.tech')
+docs = os.path.join(root, 'docs')
+shutil.rmtree(docs, ignore_errors=True); os.makedirs(docs)
+for f in os.listdir(os.path.join(root, 'public')):
+    shutil.copy(os.path.join(root, 'public', f), docs)
+shutil.copy(os.path.join(root, 'core.js'), docs)
+open(os.path.join(docs, 'config.js'), 'w').write("window.CC_API = %s;\n" % json.dumps(API_URL))
+open(os.path.join(docs, '.nojekyll'), 'w').write('')
+print('docs/ ->', API_URL)

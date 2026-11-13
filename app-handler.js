@@ -8,6 +8,8 @@ function createHandler(opts) {
   const SECRET = opts.secret;
   const SETUP_CODE = opts.setupCode || '';
   const fixedPublicUrl = (opts.publicUrl || '').replace(/\/$/, '');
+  const appUrlOpt = (opts.appUrl || '').replace(/\/$/, '');
+  const appUrl = pub => (appUrlOpt || pub) + '/';
   const enc = new TextEncoder();
   let S = CORE.initialState(), lastSeq = 0, initDone = null;
   const BOT = { token: opts.botToken || '', username: '', hooked: false };
@@ -90,7 +92,7 @@ function createHandler(opts) {
     const me = await tg('getMe'); if (!me || !me.ok) return { ok: false, error: 'Telegram не принял токен' };
     BOT.username = me.result.username; await store.setKV('bot_username', BOT.username);
     const r = await tg('setWebhook', { url: publicUrl + await hookPath(), allowed_updates: ['message'] });
-    await tg('setChatMenuButton', { menu_button: { type: 'web_app', text: 'Клуб', web_app: { url: publicUrl + '/' } } });
+    await tg('setChatMenuButton', { menu_button: { type: 'web_app', text: 'Клуб', web_app: { url: appUrl(publicUrl) } } });
     await tg('setMyCommands', { commands: [{ command: 'start', description: 'Открыть Castle Club' }] });
     await tg('setMyDescription', { description: 'Castle Club — покерный клуб (игра не на деньги, 18+). Запись на турниры, таймер, рейтинг.' });
     BOT.hooked = !!(r && r.ok);
@@ -101,12 +103,13 @@ function createHandler(opts) {
     if (msg.text && msg.text.startsWith('/start')) {
       await tg('sendMessage', { chat_id: msg.chat.id,
         text: '🏰 Castle Club — покерный клуб (игра не на деньги, 18+).\n\nЗдесь можно записаться на турнир, следить за таймером, запросить ребай и посмотреть рейтинг. Нажмите кнопку ниже, чтобы открыть приложение.',
-        reply_markup: { inline_keyboard: [[{ text: 'Открыть приложение', web_app: { url: publicUrl + '/' } }]] } });
+        reply_markup: { inline_keyboard: [[{ text: 'Открыть приложение', web_app: { url: appUrl(publicUrl) } }]] } });
     } else await tg('sendMessage', { chat_id: msg.chat.id, text: 'Всё управление — в приложении: кнопка «Клуб» внизу слева или команда /start.' });
   }
 
   /* ---------- HTTP ---------- */
-  const J = (code, obj) => new Response(JSON.stringify(obj), { status: code, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+  const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'content-type, authorization', 'access-control-max-age': '86400' };
+  const J = (code, obj) => new Response(JSON.stringify(obj), { status: code, headers: Object.assign({ 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }, CORS) });
   const attempts = new Map();
   function tooMany(key) { const now = Date.now(); const a = (attempts.get(key) || []).filter(t => now - t < 15 * 60000); a.push(now); attempts.set(key, a); return a.length > 8; }
   const setupPage = () => `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castle Club — настройка</title>
@@ -124,6 +127,7 @@ if(!x.ok)throw new Error(j.error);r.innerHTML='✅ Бот @'+j.username+' под
     const url = new URL(request.url);
     const publicUrl = fixedPublicUrl || (opts.publicUrlFrom ? opts.publicUrlFrom(request) : url.origin);
     const p = url.pathname;
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     try {
       if (request.method === 'GET' && ASSETS && ASSETS[p === '/' ? '/index.html' : p]) {
         const a = ASSETS[p === '/' ? '/index.html' : p];

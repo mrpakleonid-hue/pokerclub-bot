@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Castle Club">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e2a4"/>
+      <stop offset="1" stop-color="#b8913f"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="26" fill="#121014"/>
+  <path fill="url(#g)" d="M22 98V52h8v-9h8v9h8V38h7v-8h14v8h7v14h8v-9h8v9h8v46H70V80a10 10 0 0 0-20 0v18z"/>
+  <path fill="#121014" d="M60 63c-3.2 3.6-8 6-8 10a4 4 0 0 0 6.6 3L57 81h6l-1.6-5a4 4 0 0 0 6.6-3c0-4-4.8-6.4-8-10z"/>
+  <rect x="22" y="100" width="76" height="4" rx="2" fill="url(#g)"/>
+</svg>

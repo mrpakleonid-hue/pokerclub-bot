@@ -5,6 +5,7 @@ const MIN = C.MIN, DAY = C.DAY;
 const TGW = window.Telegram && window.Telegram.WebApp;
 const IN_TG = !!(TGW && TGW.initData);
 let BOT = '';
+const API = (window.CC_API || '').replace(/\/$/, '');
 
 let S = null, TOKEN = null, offset = 0;
 const UI = { tab: {}, tid: null, ptid: null, table: 'all', sheet: null, full: null, loginErr: '' };
@@ -58,7 +59,7 @@ class NetErr extends Error {}
 async function api(path, opts) {
   let r;
   try {
-    r = await fetch(path, { method: opts && opts.body ? 'POST' : 'GET', headers: Object.assign({ 'content-type': 'application/json' }, TOKEN ? { authorization: 'Bearer ' + TOKEN } : {}), body: opts && opts.body ? JSON.stringify(opts.body) : undefined });
+    r = await fetch(API + path, { method: opts && opts.body ? 'POST' : 'GET', headers: Object.assign({ 'content-type': 'application/json' }, TOKEN ? { authorization: 'Bearer ' + TOKEN } : {}), body: opts && opts.body ? JSON.stringify(opts.body) : undefined });
   } catch (e) { throw new NetErr('Нет связи с сервером'); }
   let j = {}; try { j = await r.json(); } catch (e) {}
   if (r.status === 401 && j.relogin) { logout(); throw new Error(j.error); }
@@ -148,7 +149,7 @@ function stChip(o) {
 const avatar = id => `<div class="av">${esc((nick(id)[0] || '?').toUpperCase())}</div>`;
 function header(sub) {
   const unread = S.notes.filter(n => !n.read).length;
-  return `<div class="brand"><img src="/logo.svg" alt="Castle Club">
+  return `<div class="brand"><img src="logo.svg" alt="Castle Club">
     <div><div class="t">CASTLE CLUB</div><div class="s">${sub}</div></div>
     <button class="bell" data-act="sheet" data-k="notes" aria-label="Уведомления">🔔${unread ? `<span class="badge">${unread}</span>` : ''}</button></div>
     ${pending.length ? `<div class="lock" style="border-color:#6b4a18;color:var(--amber);margin:-4px 0 12px">Не отправлено действий: ${pending.length}. Отправим, как только появится связь.</div>` : ''}`;
@@ -156,7 +157,7 @@ function header(sub) {
 
 /* ---------- вход ---------- */
 function loginView() {
-  return `<main><div class="brand"><img src="/logo.svg" alt="Castle Club"><div><div class="t">CASTLE CLUB</div><div class="s">Покерный клуб · игра не на деньги · 18+</div></div></div>
+  return `<main><div class="brand"><img src="logo.svg" alt="Castle Club"><div><div class="t">CASTLE CLUB</div><div class="s">Покерный клуб · игра не на деньги · 18+</div></div></div>
   ${BOT ? `<div class="card gold"><b>Удобнее всего — через Telegram</b><div class="small mut" style="margin-top:6px">Откройте бота и нажмите «Открыть приложение». Вход произойдёт автоматически.</div>
     <a class="btn wide" style="display:block;text-align:center;text-decoration:none;margin-top:12px" href="https://t.me/${BOT}">Открыть @${BOT}</a></div>` : ''}
   <form class="card" data-form="codeLogin"><b>Нет Telegram? Вход по коду</b>
@@ -545,7 +546,7 @@ function sheetHtml() {
   if (s.k === 'code') {
     h = `<div class="between"><h3>Код входа: ${esc(nick(s.pid))}</h3>${close}</div>
     <div class="card gold" style="margin-top:12px;text-align:center"><div class="lbl">Код на 24 часа</div><div class="big" style="font-size:44px;letter-spacing:.15em">${esc(s.code)}</div></div>
-    <div class="small mut">Игрок открывает сайт <b>${esc(location.origin)}</b>, вводит свой телефон и этот код. Передайте код лично — он даёт вход в профиль игрока.</div>`;
+    <div class="small mut">Игрок открывает сайт <b>${esc(location.origin + location.pathname.replace(/index\.html$/, ''))}</b>, вводит свой телефон и этот код. Передайте код лично — он даёт вход в профиль игрока.</div>`;
   }
   if (s.k === 'notes') {
     const ns = S.notes;
@@ -609,7 +610,7 @@ function sheetHtml() {
 function fullHtml() {
   const t = T(UI.full); if (!t) return '';
   const v = clockView(t);
-  return `<div class="full"><img src="/logo.svg" alt="Castle Club"><div class="lbl" style="font-size:16px">${esc(t.title)} · <span data-clk="lvl" data-tid="${t.id}">${v.L.brk ? 'Перерыв' : 'Уровень ' + v.no}</span></div>
+  return `<div class="full"><img src="logo.svg" alt="Castle Club"><div class="lbl" style="font-size:16px">${esc(t.title)} · <span data-clk="lvl" data-tid="${t.id}">${v.L.brk ? 'Перерыв' : 'Уровень ' + v.no}</span></div>
     <div class="tm" data-clk="tm" data-tid="${t.id}">${mmss(v.rem)}</div>
     <div class="bl" data-clk="bl" data-tid="${t.id}">${blinds(v.L)}</div>
     <div class="mut" style="margin-top:10px;font-size:18px" data-clk="brk" data-tid="${t.id}">${brkText(v)}</div>
@@ -624,7 +625,7 @@ function render() {
 }
 function renderOffline(msg) {
   if (S) { render(); return; }
-  document.getElementById('app').innerHTML = `<main><div class="brand"><img src="/logo.svg" alt=""><div><div class="t">CASTLE CLUB</div></div></div><div class="card warn"><b>${esc(msg)}</b><div class="small mut" style="margin-top:6px">Бесплатный сервер просыпается до минуты. Повторяем автоматически…</div></div></main>`;
+  document.getElementById('app').innerHTML = `<main><div class="brand"><img src="logo.svg" alt=""><div><div class="t">CASTLE CLUB</div></div></div><div class="card warn"><b>${esc(msg)}</b><div class="small mut" style="margin-top:6px">Бесплатный сервер просыпается до минуты. Повторяем автоматически…</div></div></main>`;
 }
 function tick() {
   if (!S) return;
@@ -707,7 +708,7 @@ document.addEventListener('submit', e => { e.preventDefault(); const f = e.targe
 /* ---------- запуск ---------- */
 async function start() {
   if (IN_TG) { try { TGW.ready(); TGW.expand(); TGW.setHeaderColor && TGW.setHeaderColor('#0a0a0b'); TGW.setBackgroundColor && TGW.setBackgroundColor('#0a0a0b'); } catch (e) {} }
-  try { const r = await fetch('/api/config'); BOT = (await r.json()).bot || ''; } catch (e) {}
+  try { const r = await fetch(API + '/api/config'); BOT = (await r.json()).bot || ''; } catch (e) {}
   for (let attempt = 0; ; attempt++) {
     try {
       if (IN_TG) { const r = await api('/api/auth/telegram', { body: { initData: TGW.initData } }); TOKEN = r.token; try { localStorage.setItem('cc-token', TOKEN); } catch (e) {} }

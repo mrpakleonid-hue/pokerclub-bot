@@ -423,5 +423,5 @@ const api = { MIN, DAY, mkLevels, STD_PAIRS, NICE, nextBB, lvNo, lastPlay, clone
   initialState, U, nick, T, can, opsOf, issued, paid, due, regOf, regsOf, blocked, opName, fmt, rub, clockView, rating,
   apply, view, Refused };
 if (typeof module !== 'undefined') module.exports = api;
-if (typeof window !== 'undefined') window.CORE = api;
+globalThis.CORE = api;
 })();

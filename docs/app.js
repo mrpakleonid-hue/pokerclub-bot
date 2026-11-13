@@ -430,11 +430,16 @@ function mStructs() {
 }
 function oRoles() {
   const people = S.users.filter(u => u.id !== meId() && u.profileDone);
+  const permsOf = role => role === 'owner' ? 'Все права, включая назначение ролей' : role === 'player' ? 'Только функции игрока' :
+    (PERMS.filter(([k]) => (S.roles[role] || []).includes(k)).map(p => p[1]).join(' · ') || 'Нет прав персонала');
   return `<div class="sec" style="margin-top:0"><span>Люди и роли</span></div>
-  <div class="card list">${people.map(u => `<div class="it">${avatar(u.id)}<div class="grow"><div class="nick">${esc(u.nick)}</div><div class="small mut">${esc(u.name || '')}</div></div>
-    <select style="width:auto;min-width:150px" data-act="setRole" data-uid="${u.id}" aria-label="Роль ${esc(u.nick)}">${['owner', 'manager', 'dealer', 'player'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLE_TITLES[r]}</option>`).join('')}</select></div>`).join('') || '<div class="empty">Пока никто не зарегистрировался. Пусть сотрудники откроют бота и пройдут регистрацию — потом назначите им роли здесь.</div>'}</div>
-  ${['manager', 'dealer'].map(r => `<div class="sec"><span>Права: ${ROLE_TITLES[r]}</span></div><div class="card">${PERMS.filter(p => p[0] !== 'roles').map(([k, l]) =>
-    `<label class="perm"><span>${l}</span><input type="checkbox" data-act="perm" data-role="${r}" data-k="${k}" ${S.roles[r].includes(k) ? 'checked' : ''}></label>`).join('')}</div>`).join('')}`;
+  <div class="card list">${people.map(u => `<div class="it" style="flex-wrap:wrap">${avatar(u.id)}<div class="grow"><div class="nick">${esc(u.nick)} <span class="tag">${ROLE_TITLES[u.role]}</span></div><div class="small mut">${esc(u.name || '')}</div></div>
+    <select style="width:auto;min-width:150px" data-act="setRole" data-uid="${u.id}" aria-label="Роль ${esc(u.nick)}">${['owner', 'manager', 'dealer', 'player'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLE_TITLES[r]}</option>`).join('')}</select>
+    <div class="small mut" style="flex-basis:100%;margin-top:6px">Может: ${esc(permsOf(u.role))}</div></div>`).join('') || '<div class="empty">Пока никого. Попросите сотрудников зарегистрироваться в боте.</div>'}</div>
+  <div class="sec"><span>Настройка ролей</span></div>
+  <div class="lock" style="margin:0 0 10px">Здесь задаётся, что умеет каждая роль. Галочка меняет права сразу у всех людей с этой ролью. Чтобы изменить права одного человека — смените ему роль выше.</div>
+  ${['manager', 'dealer'].map(r => `<details id="perm-${r}" class="card" style="padding:0" ${OPEN['perm-' + r] ? 'open' : ''}><summary style="padding:14px 16px;cursor:pointer;font-weight:600">Что может роль «${ROLE_TITLES[r]}»</summary><div style="padding:0 16px 8px">${PERMS.filter(p => p[0] !== 'roles').map(([k, l]) =>
+    `<label class="perm"><span>${l}</span><input type="checkbox" data-act="perm" data-role="${r}" data-k="${k}" ${S.roles[r].includes(k) ? 'checked' : ''}></label>`).join('')}</div></details>`).join('')}`;
 }
 function mLog() {
   return `<div class="lock" style="margin:0 0 12px">Каждое действие пишется в журнал. Удалить запись нельзя.</div>
@@ -620,7 +625,8 @@ function fullHtml() {
     <button class="btn ghost" style="margin-top:24px" data-act="unfull">Закрыть</button></div>`;
 }
 /* Введённое пользователем не должно пропадать при фоновом обновлении экрана */
-const DIRTY = {};
+const DIRTY = {}, OPEN = {};
+document.addEventListener('toggle', e => { if (e.target.id) OPEN[e.target.id] = e.target.open; }, true);
 const fieldVal = el => el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value;
 document.addEventListener('input', e => { const el = e.target; if (el.id && /INPUT|SELECT|TEXTAREA/.test(el.tagName)) DIRTY[el.id] = fieldVal(el); }, true);
 document.addEventListener('change', e => { const el = e.target; if (el.id && /INPUT|SELECT|TEXTAREA/.test(el.tagName)) DIRTY[el.id] = fieldVal(el); }, true);

@@ -634,7 +634,7 @@ function restoreFields() {
   for (const id in DIRTY) { const el = document.getElementById(id); if (!el) continue; if (el.type === 'checkbox' || el.type === 'radio') el.checked = DIRTY[id]; else el.value = DIRTY[id]; }
 }
 function clearDirty(form) { form.querySelectorAll('[id]').forEach(el => { delete DIRTY[el.id]; }); }
-function render() { renderInner(); restoreFields(); }
+function render() { const y = window.scrollY; renderInner(); restoreFields(); const on = document.querySelector('.tabs .tab.on'); if (on && on.parentElement) on.parentElement.scrollLeft = on.offsetLeft - on.parentElement.clientWidth / 2 + on.clientWidth / 2; if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y); }
 function renderInner() {
   const app = document.getElementById('app'), layer = document.getElementById('layer');
   if (!S) { app.innerHTML = TOKEN ? '<main><div class="empty">Загрузка…</div></main>' : loginView(); layer.innerHTML = ''; return; }

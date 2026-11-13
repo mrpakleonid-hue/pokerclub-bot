@@ -47,6 +47,8 @@ function dayLabel(date) {
   if (date === today) return 'Сегодня'; if (date === tomorrow) return 'Завтра';
   return new Date(date + 'T12:00').toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
 }
+const ruToIso = v => { const m = String(v || '').trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); return m ? m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0') : String(v || ''); };
+document.addEventListener('input', e => { const el = e.target; if (!el.dataset || el.dataset.mask !== 'date') return; const d = el.value.replace(/\D/g, '').slice(0, 8); el.value = d.length > 4 ? d.slice(0, 2) + '.' + d.slice(2, 4) + '.' + d.slice(4) : d.length > 2 ? d.slice(0, 2) + '.' + d.slice(2) : d; });
 const dateRu = d => d ? d.split('-').reverse().join('.') : '';
 const mmss = ms => { const s = Math.ceil(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
 const blinds = L => L.brk ? 'Перерыв' : fmt(L.sb) + ' / ' + fmt(L.bb) + ' · анте ' + fmt(L.ante);
@@ -176,7 +178,7 @@ function onboarding() {
     <label class="f" for="ob-nick">Ник в клубе</label><input id="ob-nick" type="text" name="nick" value="${esc(me.nick || '')}" required>
     <label class="f" for="ob-phone">Телефон</label>
     <div class="row"><input id="ob-phone" type="tel" name="phone" placeholder="+7 ..." value="${esc(me.phone || '')}" required>${IN_TG && TGW.requestContact ? '<button type="button" class="btn dark sm" data-act="sharePhone">Поделиться</button>' : ''}</div>
-    <label class="f" for="ob-dob">Дата рождения</label><input id="ob-dob" type="date" name="dob" value="${esc(me.dob || '')}" required>
+    <label class="f" for="ob-dob">Дата рождения</label><input id="ob-dob" type="text" name="dob" inputmode="numeric" placeholder="ДД.ММ.ГГГГ" maxlength="10" data-mask="date" value="${esc(dateRu(me.dob || ''))}" required>
     <div class="small mut" style="margin-top:4px">Клуб принимает игроков с 18 лет. Изменить дату потом можно только через управляющего.</div>
     <label class="row small" style="margin-top:12px;gap:10px"><input type="checkbox" name="pd" required style="width:22px;height:22px;accent-color:var(--gold)"> Согласен(на) на обработку персональных данных и с правилами клуба</label>
     <button class="btn wide" style="margin-top:14px">Зарегистрироваться</button>
@@ -680,7 +682,7 @@ const FORM = {
     try { const r = await api('/api/auth/code', { body: { phone: f.get('phone'), code: f.get('code') } }); TOKEN = r.token; localStorage.setItem('cc-token', TOKEN); UI.loginErr = ''; await load(); }
     catch (e) { UI.loginErr = e.message; render(); }
   },
-  profile: f => act('profile', { name: f.get('name'), nick: f.get('nick'), phone: f.get('phone'), dob: f.get('dob') }, { ok: 'Сохранено' }),
+  profile: f => act('profile', { name: f.get('name'), nick: f.get('nick'), phone: f.get('phone'), dob: ruToIso(f.get('dob')) }, { ok: 'Сохранено' }),
   req: (f, d) => act('req', { tid: d.tid, type: d.type, mult: f.get('mult') || 1 }, { ok: 'Запрос отправлен дилеру' }),
   issue: (f, d) => { const [type, mult] = f.get('what').split(':'); act('issue', { tid: d.tid, pid: d.pid, type, mult, table: f.get('table'), box: f.get('box') }, { ok: 'Выдача отмечена', queue: true }); },
   checkin: (f, d) => act('checkin', { tid: d.tid, pid: d.pid, table: f.get('table'), box: f.get('box'), paidNow: !!f.get('paidNow'), method: f.get('method') }, { ok: 'Игрок в игре', queue: true }),
